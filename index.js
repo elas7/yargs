@@ -49,11 +49,19 @@ function Argv (processArgs, cwd) {
     )
   }
 
+  // use context object to keep track of resets, subcommand execution, etc
+  // submodules should modify and check the state of context as necessary
+  var context = { resets: -1, commands: [] }
+  self.getContext = function () {
+    return context
+  }
+
   // puts yargs back into an initial state. any keys
   // that have been set to "global" will not be reset
   // by this action.
   var options
   self.resetOptions = self.reset = function (aliases) {
+    context.resets++
     aliases = aliases || {}
     options = options || {}
     // put yargs back into an initial state, this
@@ -243,7 +251,7 @@ function Argv (processArgs, cwd) {
 
     if (typeof keys === 'number') {
       if (!options.demanded._) options.demanded._ = { count: 0, msg: null, max: max }
-      options.demanded._.count = keys
+      options.demanded._.count = keys // + context.commands.length
       options.demanded._.msg = msg
     } else if (Array.isArray(keys)) {
       keys.forEach(function (key) {
